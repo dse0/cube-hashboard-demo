@@ -1,0 +1,57 @@
+cubes:
+  - name: sales
+    sql: SELECT * FROM read_parquet('s3://pizza-shop-demo-5489167/sales.parquet')
+    public: true
+
+    joins:
+      - name: orders
+        sql: "{CUBE.order_id} = {orders.id}"
+        relationship: many_to_one
+      - name: products
+        sql: "{CUBE.product_id} = {products.id}"
+        relationship: many_to_one
+      - name: customers
+        sql: "{CUBE.customer_id} = {customers.id}"
+        relationship: many_to_one
+
+    dimensions:
+      - name: item_id
+        sql: item_id
+        type: number
+        primary_key: true
+      - name: order_id
+        sql: order_id
+        type: number
+      - name: item_number
+        sql: item_number
+        type: number
+      - name: product_id
+        sql: product_id
+        type: number
+      - name: quantity
+        sql: quantity
+        type: number
+      - name: customer_id
+        sql: customer_id
+        type: string
+      - name: item_price
+        sql: item_price
+        type: number
+      - name: timestamp
+        sql: timestamp
+        type: time
+    
+    measures:
+      - name: row_count
+        type: count
+      - name: qty_sold
+        type: sum
+        sql: quantity
+      - name: Revenue
+        type: sum
+        sql: "{CUBE.item_price}"
+      - name: avg_unit_price
+        type: number
+        sql: "{CUBE.Revenue} / {CUBE.qty_sold}"
+
+

@@ -1,0 +1,65 @@
+cubes:
+  - name: campaigns
+    sql: SELECT * FROM read_parquet('s3://pizza-shop-demo-5489167/campaigns.parquet')
+    public: true
+    description: This model provides details about each marketing campaign.
+
+    joins:
+      - name: marketing_attribution
+        sql: "{CUBE.campaign_id} = {marketing_attribution.campaign_id}"
+        relationship: one_to_many
+      - name: marketing_touchpoints
+        sql: "{CUBE.campaign_id} = {marketing_touchpoints.campaign_id}"
+        relationship: one_to_many
+
+    dimensions:
+      - name: campaign_id
+        sql: campaign_id
+        type: string
+        description: Unique ID for the campaign.
+        primary_key: true
+      - name: campaign
+        sql: campaign
+        type: string
+        description: Duplicate of campaign_id
+      - name: campaign_name
+        sql: campaign_name
+        type: string
+        description: The name of the marketing campaign.
+      - name: campaign_type
+        sql: campaign_type
+        type: string
+        description: Type of the campaign, e.g., Email, Social Media, Search Engine Marketing.
+      - name: start_date
+        sql: start_date
+        type: time
+        description: Start date of the campaign.
+      - name: end_date
+        sql: end_date
+        type: string
+        description: End date of the campaign.
+      - name: total_budget
+        sql: total_budget
+        type: number
+        description: The total budget for the campaign.
+      - name: touchpoint_count
+        type: number
+        sql: touchpoint_count
+      - name: cost_per_touchpoint
+        type: number
+        sql: cost_per_touchpoint
+    
+    measures:
+      - name: row_count
+        type: count
+        title: Campaign Count
+      - name: total_cost
+        type: sum
+        sql: total_budget
+      - name: total_touchpoints
+        type: sum
+        sql: touchpoint_count
+      - name: avg_cost_per_touchpoint
+        type: number
+        sql: "{CUBE.total_cost} / {CUBE.total_touchpoints}"
+

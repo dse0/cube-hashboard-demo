@@ -1,0 +1,53 @@
+cubes:
+  - name: marketing_touchpoints
+    sql: SELECT * FROM read_parquet('s3://pizza-shop-demo-5489167/marketing_touchpoints.parquet')
+    public: false
+
+    joins:
+      - name: customers
+        sql: "{CUBE.customer_id} = {customers.id}"
+        relationship: many_to_one
+      - name: campaigns
+        sql: "{CUBE.campaign_id} = {campaigns.campaign_id}"
+        relationship: many_to_one
+
+      - name: marketing_attribution
+        sql: "{CUBE.touchpoint_id} = {marketing_attribution.touchpoint_id}"
+        relationship: one_to_many
+
+    dimensions:
+      - name: touchpoint_id
+        sql: touchpoint_id
+        type: string
+        primary_key: true
+      - name: customer_id
+        sql: customer_id
+        type: string
+      - name: source
+        sql: source
+        type: string
+      - name: medium
+        sql: medium
+        type: string
+      - name: campaign
+        sql: campaign
+        type: string
+      - name: interaction_timestamp
+        sql: interaction_timestamp
+        type: time
+      - name: touchpoint_value
+        sql: touchpoint_value
+        type: number
+      - name: campaign_id
+        sql: campaign_id
+        type: string
+      - name: cost_per_touchpoint
+        sql: cost_per_touchpoint
+        type: number
+    
+    measures:
+      - name: row_count
+        type: count
+        title: Marketing Touchpoint Count
+
+

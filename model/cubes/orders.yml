@@ -1,37 +1,108 @@
 cubes:
   - name: orders
-    sql: >
-      select 1 as id, 100 as amount, 'new' status
-      UNION ALL
-      select 2 as id, 200 as amount, 'new' status
-      UNION ALL
-      select 3 as id, 300 as amount, 'processed' status
-      UNION ALL
-      select 4 as id, 500 as amount, 'processed' status
-      UNION ALL
-      select 5 as id, 600 as amount, 'shipped' status
+    sql: SELECT * FROM read_parquet('s3://pizza-shop-demo-5489167/orders.parquet')
+    public: true
 
-    joins: []
+    joins:
+      - name: customers
+        sql: "{CUBE.customer_id} = {customers.id}"
+        relationship: many_to_one
+
+      - name: marketing_attribution
+        sql: "{CUBE.id} = {marketing_attribution.order_id}"
+        relationship: one_to_many
+      - name: sales
+        sql: "{sales.order_id} = {CUBE.id}"
+        relationship: one_to_many
 
     dimensions:
       - name: id
         sql: id
         type: number
         primary_key: true
-
-      - name: status
-        sql: status
+      - name: timestamp
+        sql: timestamp
+        type: time
+      - name: payment_method
+        sql: payment_method
         type: string
-
+      - name: delivery
+        sql: delivery
+        type: string
+      - name: type
+        sql: type
+        type: string
+      - name: customer_id
+        sql: customer_id
+        type: string
+      - name: total_order_value
+        sql: total_order_value
+        type: number
+      - name: loyalty_status
+        sql: loyalty_status
+        type: string
+      - name: discount_code
+        sql: discount_code
+        type: string
+      - name: feedback_rating
+        sql: feedback_rating
+        type: number
+      - name: delivery_time
+        sql: delivery_time
+        type: number
+      - name: preparation_time
+        sql: preparation_time
+        type: number
+      - name: special_request
+        sql: special_request
+        type: string
+      - name: referral_source
+        sql: referral_source
+        type: string
+      - name: cook_id
+        sql: cook_id
+        type: string
+      - name: location_id
+        sql: location_id
+        type: string
+    
     measures:
-      - name: count
+      - name: row_count
         type: count
-
-      - name: amount
-        sql: amount
+        title: "Number of Orders"
+      - name: total_delivery_time
+        sql: delivery_time
         type: sum
+        public: false
+      - name: avg_delivery_time
+        sql: "{CUBE.total_delivery_time} / {CUBE.row_count}"
+        type: number
+      - name: total_preparation_time
+        sql: preparation_time
+        type: sum
+        public: false
+      - name: avg_preparation_time
+        sql: "{CUBE.total_preparation_time} / {CUBE.row_count}"
+        type: number
+      - name: sum_order_value
+        sql: total_order_value
+        type: sum
+      - name: sum_feedback_rating
+        sql: feedback_rating
+        type: sum
+        public: false
+      - name: avg_feedback_rating
+        sql: "{CUBE.sum_feedback_rating} / {CUBE.row_count}"
+        type: number
+      - name: revenue_per_order
+        title: "Revenue per order"
+        type: number
+        sql: "{CUBE.sum_order_value} / {CUBE.row_count}"
+      - name: delivery_orders
+        title: "Pizza Delivery Orders"
+        type: count
+        filters:
+          - sql: "{CUBE.delivery} = 'Yes'"
+        
 
-    pre_aggregations:
-      # Pre-aggregation definitions go here.
-      # Learn more in the documentation: https://cube.dev/docs/caching/pre-aggregations/getting-started
 

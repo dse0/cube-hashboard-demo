@@ -1,0 +1,34 @@
+cubes:
+  - name: products
+    sql: SELECT * FROM read_parquet('s3://pizza-shop-demo-5489167/products.parquet')
+    public: true
+
+    joins:
+      - name: sales
+        sql: "{sales.product_id} = {CUBE.id}"
+        relationship: one_to_many
+
+    dimensions:
+      - name: id
+        sql: id
+        type: string
+        primary_key: true
+      - name: pizza_size
+        sql: pizza_size
+        type: string
+      - name: pizza_shape
+        sql: pizza_shape
+        type: string
+      - name: pizza_type
+        sql: pizza_type
+        type: string
+      - name: price
+        sql: price
+        type: number
+    
+    measures:
+      - name: row_count
+        type: count
+        title: Number of Products
+
+

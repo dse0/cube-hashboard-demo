@@ -1,0 +1,49 @@
+cubes:
+  - name: marketing_attribution
+    sql: SELECT * FROM read_parquet('s3://pizza-shop-demo-5489167/marketing_attribution.parquet')
+    public: false
+
+    joins:
+      - name: orders
+        sql: "{CUBE.order_id} = {orders.id}"
+        relationship: many_to_one
+      - name: marketing_touchpoints
+        sql: "{CUBE.touchpoint_id} = {marketing_touchpoints.touchpoint_id}"
+        relationship: many_to_one
+      - name: campaigns
+        sql: "{CUBE.campaign_id} = {campaigns.campaign_id}"
+        relationship: many_to_one
+
+    dimensions:
+      - name: attribution_id
+        sql: attribution_id
+        type: string
+        primary_key: true
+      - name: order_id
+        sql: order_id
+        type: string
+      - name: order_timestamp
+        sql: order_timestamp
+        type: time
+      - name: touchpoint_id
+        sql: touchpoint_id
+        type: string
+      - name: attribution_share
+        sql: attribution_share
+        type: number
+      - name: attribution_timestamp
+        sql: attribution_timestamp
+        type: time
+      - name: attribution_model
+        sql: attribution_model
+        type: string
+      - name: campaign_id
+        sql: campaign_id
+        type: string
+    
+    measures:
+      - name: row_count
+        type: count
+        public: false
+
+

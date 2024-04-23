@@ -1,0 +1,59 @@
+cubes:
+  - name: customers
+    sql: SELECT * FROM read_parquet('s3://pizza-shop-demo-5489167/customers.parquet')
+    public: true
+    description: This model provides customer information.
+
+    joins:
+      - name: marketing_touchpoints
+        sql: "{CUBE.id} = {marketing_touchpoints.customer_id}"
+        relationship: one_to_many
+      - name: orders
+        sql: "{orders.customer_id} = {CUBE.id}"
+        relationship: one_to_many
+      - name: sales
+        sql: "{sales.customer_id} = {CUBE.id}"
+        relationship: one_to_many
+
+
+    dimensions:
+      - name: id
+        sql: id
+        type: string
+        description: Unique ID for the customer.
+        primary_key: true
+      - name: name
+        sql: name
+        type: string
+        description: The name of the customer.
+      - name: address
+        sql: address
+        type: string
+        description: The address of the customer.
+      - name: phone_number
+        sql: phone_number
+        type: string
+        description: The phone number of the customer.
+      - name: number_of_orders
+        sub_query: true
+        type: number
+        sql: "{orders.row_count}"
+    
+    measures:
+      - name: row_count
+        type: count
+        title: Number of Customers
+      - name: sum_orders
+        type: sum
+        sql: "{CUBE.number_of_orders}"
+      - name: orders_per_customer
+        title: "Orders per customer"
+        type: number
+        #sql: "{CUBE.sum_orders"
+        sql: "{orders.row_count} / {CUBE.row_count}"
+      - name: revenue_per_customer
+        title: Revenue per customer
+        type: number
+        sql: "{sales.Revenue} / {CUBE.row_count}"
+
+
