@@ -2,7 +2,7 @@ cubes:
   - name: campaigns
     sql: SELECT * FROM read_parquet('s3://pizza-shop-demo-5489167/campaigns.parquet')
     public: true
-    description: This model provides details about each marketing campaign.
+    description: This model provides details about each marketing campaign. Test
 
     joins:
       - name: marketing_attribution
